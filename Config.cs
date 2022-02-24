@@ -11,51 +11,21 @@ namespace MicMute
 {
     public class Config
     {
-        public static Settings Settings { get; set; }
-        private const string SettingsKey = "settings";
-        private const string FileName = "appsettings.json";
-        private static readonly string Path = System.IO.Path.Combine(AppContext.BaseDirectory, FileName);
-        private static Dictionary<string, object> _appsettings;
+        public static MySettings Settings { get; set; }
 
         public static void Build()
         {
-            if (!File.Exists(Path))
-            {
-                File.Create(Path).Dispose();
-                _appsettings = new Dictionary<string, object>();
-                Settings = new Settings();
-                _appsettings[SettingsKey] = Settings;
-                Save();
-            }
-            else
-            {
-                try
-                {
-                    _appsettings = JObject.Parse(File.ReadAllText(Path)).ToObject<Dictionary<string,object>>();
-                    var jObject=_appsettings?[SettingsKey] as JObject;
-                    Settings = jObject?.ToObject<Settings>();
-                }
-                catch (Exception )
-                {
-                    _appsettings = new Dictionary<string, object>();
-                    Settings = new Settings();
-                    _appsettings[SettingsKey] = Settings;
-                    Save();
-                }
-                
-            }
-
+            Settings = JsonConvert.DeserializeObject<MySettings>(MicMute.Settings.Default.Keys)??new MySettings();
         }
 
         public static void Save()
         {
-            if (_appsettings == null) return;
-            if (Settings != null) _appsettings[SettingsKey] = Settings;
-            File.WriteAllText(Path, JsonConvert.SerializeObject(_appsettings));
+            MicMute.Settings.Default.Keys = JsonConvert.SerializeObject(Settings);
+            MicMute.Settings.Default.Save();
         }
     }
 
-    public class Settings
+    public class MySettings
     {
         public HashSet<int> Keys { get; set; }
     }
